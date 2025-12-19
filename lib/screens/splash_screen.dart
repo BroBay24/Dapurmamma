@@ -21,25 +21,6 @@ class SplashScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-            // Cake images at the bottom
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/images/kuetart1.png',
-                  width: 150,
-                  height: 150,
-                  fit: BoxFit.cover,
-                ),
-                const SizedBox(width: 10),
-                Image.asset(
-                  'assets/images/kuetart2.png',
-                  width: 150,
-                  height: 150,
-                  fit: BoxFit.cover,
-                ),
-              ],
-            ),
           ],
         ),
       ),
