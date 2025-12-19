@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -21,6 +22,73 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> signUp() async {
+    // Validate passwords
+    if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
+      _showErrorDialog(context, 'Password dan konfirmasi password tidak sama.');
+      return;
+    }
+
+    // Show loading circle
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      // Pop loading circle
+      if (mounted) Navigator.pop(context);
+      // Navigate to login
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registrasi berhasil! Silakan login.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      // Pop loading circle
+      if (mounted) Navigator.pop(context);
+      // Show error message
+      String errorMessage;
+      if (e.code == 'weak-password') {
+        errorMessage = 'Password yang diberikan terlalu lemah.';
+      } else if (e.code == 'email-already-in-use') {
+        errorMessage = 'Akun sudah ada untuk email tersebut.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'Alamat email tidak valid.';
+      } else {
+        errorMessage = 'Terjadi kesalahan registrasi. Silakan coba lagi.';
+      }
+      _showErrorDialog(context, errorMessage);
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Registrasi Gagal'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -209,27 +277,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Validasi password
-                      if (_passwordController.text !=
-                          _confirmPasswordController.text) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Password tidak sama!'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        return;
-                      }
-                      // Navigate to login after successful registration
-                      Navigator.pushReplacementNamed(context, '/login');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Registrasi berhasil! Silakan login.'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    },
+                    onPressed: signUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E3A5F),
                       foregroundColor: Colors.white,

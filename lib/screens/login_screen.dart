@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -18,6 +19,60 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> signIn() async {
+    // Show loading circle
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      // Pop loading circle
+      if (mounted) Navigator.pop(context);
+      // Navigate to home
+      if (mounted) Navigator.pushReplacementNamed(context, '/home');
+
+    } on FirebaseAuthException catch (e) {
+      // Pop loading circle
+      if (mounted) Navigator.pop(context);
+      // Show error message
+      String errorMessage;
+      if (e.code == 'user-not-found') {
+        errorMessage = 'Tidak ada pengguna yang ditemukan untuk email tersebut.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Password salah.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'Alamat email tidak valid.';
+      } else {
+        errorMessage = 'Terjadi kesalahan login. Silakan coba lagi.';
+      }
+       _showErrorDialog(context, errorMessage);
+    }
+  }
+
+    void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Login Gagal'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -157,9 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/home');
-                    },
+                    onPressed: signIn,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E3A5F),
                       foregroundColor: Colors.white,

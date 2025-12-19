@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -15,6 +16,53 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   void dispose() {
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> passwordReset() async {
+    // Show loading circle
+    showDialog(
+      context: context,
+      builder: (context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text.trim());
+      // Pop loading circle
+      if (mounted) Navigator.pop(context);
+      // Show success dialog
+      _showSuccessDialog(context);
+    } on FirebaseAuthException catch (e) {
+      // Pop loading circle
+      if (mounted) Navigator.pop(context);
+      // Show error message
+      String errorMessage;
+      if (e.code == 'user-not-found') {
+        errorMessage = 'Tidak ada pengguna yang ditemukan untuk email tersebut.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'Alamat email tidak valid.';
+      } else {
+        errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
+      }
+      _showErrorDialog(context, errorMessage);
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -74,7 +122,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 50),
                 // Title
                 Text(
-                  'Forgot Password?',
+                  'Lupa Password?',
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
@@ -84,7 +132,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 12),
                 // Description
                 Text(
-                  'Don\'t worry! It happens. Please enter the email address associated with your account.',
+                  'Silakan masukkan alamat email Anda. Anda akan menerima tautan untuk membuat kata sandi baru melalui email.',
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -140,19 +188,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_emailController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Masukkan email Anda'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        return;
-                      }
-                      // Show success dialog
-                      _showSuccessDialog(context);
-                    },
+                    onPressed: passwordReset,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E3A5F),
                       foregroundColor: Colors.white,
@@ -162,7 +198,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       elevation: 0,
                     ),
                     child: Text(
-                      'Send Reset Link',
+                      'Kirim Reset Link',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -238,7 +274,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'We have sent a password reset link to your email address.',
+              'Silakan periksa email Anda untuk tautan pengaturan ulang.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 14,
