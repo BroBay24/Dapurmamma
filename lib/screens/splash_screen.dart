@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,7 +17,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Setup animasi
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -38,10 +36,8 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    // Mulai animasi
     _animationController.forward();
 
-    // Navigasi ke AuthGate setelah 3 detik
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/auth_gate');
@@ -58,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFB71C1C), // Dark red matching design
+      backgroundColor: const Color(0xFFB71C1C),
       body: Center(
         child: AnimatedBuilder(
           animation: _animationController,
@@ -67,46 +63,11 @@ class _SplashScreenState extends State<SplashScreen>
               opacity: _fadeAnimation,
               child: ScaleTransition(
                 scale: _scaleAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo Icon (optional - bisa tambah icon di sini)
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.restaurant_menu,
-                        size: 60,
-                        color: Color(0xFFB71C1C),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Dapur',
-                      style: GoogleFonts.lobster(
-                        fontSize: 48,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    Text(
-                      'Mamma',
-                      style: GoogleFonts.lobster(
-                        fontSize: 48,
-                        color: const Color(0xFFFFAB40), // Orange accent
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      strokeWidth: 3,
-                    ),
-                  ],
+                child: Image.asset(
+                  'web/icons/Cake_Mamma_Icon_Chef-removebg-preview.png',
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.contain,
                 ),
               ),
             );
