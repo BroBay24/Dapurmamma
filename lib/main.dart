@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/auth_gate.dart';
 import 'package:myapp/firebase_options.dart';
+import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -48,7 +49,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const AuthGate(),
+      home: const SplashScreen(),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
         '/edit_profile': (context) => const EditProfileScreen(),
         '/order_history': (context) => const OrderHistoryScreen(),
         '/success': (context) => const SuccessScreen(),
+        '/auth_gate':(context) => const AuthGate(),
       },
     );
   }

@@ -41,10 +41,10 @@ class _SplashScreenState extends State<SplashScreen>
     // Mulai animasi
     _animationController.forward();
 
-    // Navigasi ke login setelah 3 detik
+    // Navigasi ke AuthGate setelah 3 detik
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacementNamed(context, '/auth_gate');
       }
     });
   }
