@@ -55,7 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         errorMessage = 'Terjadi kesalahan login. Silakan coba lagi.';
       }
-       _showErrorDialog(context, errorMessage);
+      if (!mounted) return;
+      _showErrorDialog(context, errorMessage);
     }
   }
 

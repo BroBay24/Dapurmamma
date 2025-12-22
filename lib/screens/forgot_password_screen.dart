@@ -29,13 +29,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text.trim());
+      if (!mounted) return;
       // Pop loading circle
-      if (mounted) Navigator.pop(context);
+      Navigator.pop(context);
       // Show success dialog
       _showSuccessDialog(context);
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       // Pop loading circle
-      if (mounted) Navigator.pop(context);
+      Navigator.pop(context);
       // Show error message
       String errorMessage;
       if (e.code == 'user-not-found') {

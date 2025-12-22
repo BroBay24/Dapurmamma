@@ -71,6 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else {
         errorMessage = 'Terjadi kesalahan registrasi. Silakan coba lagi.';
       }
+      if (!mounted) return;
       _showErrorDialog(context, errorMessage);
     }
   }
