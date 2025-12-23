@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _userName = "John Doe";
+  final String _userEmail = "johndoe@email.com";
+  final String _userPhone = "081234567890";
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +59,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'John Doe',
+                    _userName,
                     style: GoogleFonts.poppins(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -58,7 +67,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'johndoe@email.com',
+                    _userEmail,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey,
@@ -74,7 +83,22 @@ class ProfileScreen extends StatelessWidget {
             _buildProfileMenu(
               icon: Icons.person_outline,
               title: 'Edit Profile',
-              onTap: () => Navigator.pushNamed(context, '/edit_profile'),
+              onTap: () async {
+                final result = await Navigator.pushNamed(
+                  context,
+                  '/edit_profile',
+                  arguments: {
+                    'name': _userName,
+                    'email': _userEmail,
+                    'phone': _userPhone,
+                  },
+                );
+                if (result != null && result is String) {
+                  setState(() {
+                    _userName = result;
+                  });
+                }
+              },
             ),
             _buildProfileMenu(
               icon: Icons.history,

@@ -12,9 +12,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   
   // Controller untuk input field
-  final TextEditingController _nameController = TextEditingController(text: "John Doe");
-  final TextEditingController _emailController = TextEditingController(text: "johndoe@email.com");
-  final TextEditingController _phoneController = TextEditingController(text: "081234567890");
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
+  late TextEditingController _phoneController;
+  bool _isInit = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInit) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, String>?;
+      _nameController = TextEditingController(text: args?['name'] ?? "John Doe");
+      _emailController = TextEditingController(text: args?['email'] ?? "johndoe@email.com");
+      _phoneController = TextEditingController(text: args?['phone'] ?? "081234567890");
+      _isInit = false;
+    }
+  }
 
   @override
   void dispose() {
@@ -95,6 +108,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller: _emailController,
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
+                readOnly: true,
               ),
               const SizedBox(height: 16),
               _buildTextField(
@@ -102,6 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller: _phoneController,
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
+                readOnly: true,
               ),
 
               const SizedBox(height: 40),
@@ -117,7 +132,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Profile updated successfully!')),
                       );
-                      Navigator.pop(context);
+                      // Return updated name
+                      Navigator.pop(context, _nameController.text);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -150,6 +166,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required IconData icon,
     TextInputType? keyboardType,
     int maxLines = 1,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,10 +184,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           controller: controller,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          style: GoogleFonts.poppins(color: const Color(0xFF1E3A5F)),
+          readOnly: readOnly,
+          style: GoogleFonts.poppins(
+            color: readOnly ? Colors.grey[600] : const Color(0xFF1E3A5F),
+          ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: readOnly ? Colors.grey[100] : Colors.white,
             prefixIcon: Icon(icon, color: Colors.grey),
             hintText: "Enter your $label",
             hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),

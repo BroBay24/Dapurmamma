@@ -146,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Order your favourite food',
+                'Original buatan mama, Order Sekarang!',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: Colors.grey[600],
