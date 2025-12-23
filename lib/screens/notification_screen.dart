@@ -9,31 +9,24 @@ class NotificationScreen extends StatelessWidget {
     // Data dummy notifikasi
     final List<Map<String, dynamic>> notifications = [
       {
-        'title': 'Pembayaran Berhasil',
-        'message': 'Pembayaran untuk pesanan #ORD-2023 telah dikonfirmasi. Penjual sedang menyiapkan pesananmu.',
+        'title': 'Pembayaran Telah Diterima',
+        'message': 'Pembayaran untuk pesanan #ORD-2023 telah diterima. Penjual sedang menyiapkan pesananmu.',
         'time': 'Baru saja',
-        'type': 'success', // success, info, alert
+        'type': 'success',
         'isRead': false,
       },
       {
         'title': 'Pesanan Dibatalkan',
-        'message': 'Maaf, pesanan #ORD-2021 dibatalkan otomatis karena batas waktu pembayaran habis.',
+        'message': 'Pesanan #ORD-2021 telah dibatalkan. Silakan hubungi customer service untuk info lebih lanjut.',
         'time': '2 jam yang lalu',
         'type': 'alert',
         'isRead': true,
       },
       {
-        'title': 'Promo Spesial Hari Ini!',
-        'message': 'Dapatkan diskon 50% untuk semua varian Bolu. Cek sekarang sebelum kehabisan!',
+        'title': 'Pembayaran Dibatalkan',
+        'message': 'Pembayaran untuk pesanan #ORD-2020 dibatalkan karena batas waktu pembayaran habis.',
         'time': '1 hari yang lalu',
-        'type': 'promo',
-        'isRead': true,
-      },
-      {
-        'title': 'Pesanan Sedang Diantar',
-        'message': 'Kurir sedang menuju ke lokasimu. Siapkan uang pas ya!',
-        'time': '2 hari yang lalu',
-        'type': 'info',
+        'type': 'alert',
         'isRead': true,
       },
     ];
