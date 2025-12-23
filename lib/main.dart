@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:myapp/auth_gate.dart';
 import 'package:myapp/firebase_options.dart';
 import 'screens/splash_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
-import 'screens/forgot_password_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
+import 'screens/auth/forgot_password_screen.dart';
+import 'screens/home/home_screen.dart';
 import 'screens/favorite_screen.dart';
-import 'screens/product_detail_screen.dart';
-import 'screens/order_detail_screen.dart';
+import 'screens/home/product_detail_screen.dart';
+import 'screens/order/order_detail_screen.dart';
 import 'screens/notification_screen.dart';
-import 'screens/profile_screen.dart';
-import 'screens/edit_profile_screen.dart';
-import 'screens/order_history_screen.dart';
+import 'screens/profile/profile_screen.dart';
+import 'screens/profile/edit_profile_screen.dart';
+import 'screens/profile/order_history_screen.dart';
 import 'screens/success_screen.dart';
 
 void main() async {
