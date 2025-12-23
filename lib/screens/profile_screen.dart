@@ -81,20 +81,8 @@ class ProfileScreen extends StatelessWidget {
               title: 'Order History',
               onTap: () => Navigator.pushNamed(context, '/order_history'),
             ),
-            _buildProfileMenu(
-              icon: Icons.location_on_outlined,
-              title: 'Shipping Address',
-              onTap: () {
-                // Navigasi ke alamat (nanti)
-              },
-            ),
-            _buildProfileMenu(
-              icon: Icons.payment,
-              title: 'Payment Methods',
-              onTap: () {
-                // Navigasi ke pembayaran (nanti)
-              },
-            ),
+            
+            // Menu Shipping Address dan Payment Methods dihapus dari sini
 
             const SizedBox(height: 20),
 
