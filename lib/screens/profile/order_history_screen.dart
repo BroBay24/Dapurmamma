@@ -6,36 +6,36 @@ class OrderHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy Data
+    // Dummy Data (silakan sambungkan ke backend)
     final List<Map<String, dynamic>> orders = [
       {
-        'id': '#ORD-8821',
-        'date': '24 Dec 2025',
-        'items': 'Bolu Kacang, Lapis Legit',
-        'total': 'Rp 185.000',
-        'status': 'Processing',
-        'image': 'assets/icons/bolukacang.jpg',
+        'id': 'ID-01',
+        'dateTime': '10 Des 2025, 18:45',
+        'items': 'Bolu Coklat Kacang',
+        'total': '20.000',
+        'status': 'Diproses',
+        'payment': 'Qris',
       },
       {
-        'id': '#ORD-8820',
-        'date': '20 Dec 2025',
-        'items': 'Brownies Kukus',
-        'total': 'Rp 45.000',
-        'status': 'Completed',
-        'image': 'assets/icons/bolukacang.jpg',
+        'id': 'ID-02',
+        'dateTime': '10 Des 2025, 18:45',
+        'items': 'Bolu Coklat Durian',
+        'total': '20.000',
+        'status': 'Dibatalkan',
+        'payment': 'Qris',
       },
       {
-        'id': '#ORD-8819',
-        'date': '15 Dec 2025',
-        'items': 'Bika Ambon',
-        'total': 'Rp 65.000',
-        'status': 'Cancelled',
-        'image': 'assets/icons/bolukacang.jpg',
+        'id': 'ID-03',
+        'dateTime': '10 Des 2025, 18:45',
+        'items': 'Bolu Coklat Strawberry',
+        'total': '20.000',
+        'status': 'Selesai',
+        'payment': 'Gopay',
       },
     ];
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF7F6F6),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -43,7 +43,7 @@ class OrderHistoryScreen extends StatelessWidget {
         title: Text(
           'Order History',
           style: GoogleFonts.lobster(
-            color: const Color(0xFF1E3A5F),
+            color: const Color(0xFFE95E2E),
             fontSize: 24,
           ),
         ),
@@ -67,36 +67,45 @@ class OrderHistoryScreen extends StatelessWidget {
     Color statusColor;
     Color statusBgColor;
 
+    const cardColor = Color(0xFF6A5045);
+    const dividerColor = Color(0xFFB8A9A0);
+    const textMuted = Color(0xFFE6DBD5);
+
     switch (order['status']) {
-      case 'Processing':
+      case 'Diproses':
         statusColor = const Color(0xFFE67E22);
-        statusBgColor = const Color(0xFFE67E22).withOpacity(0.1);
+        statusBgColor = const Color(0xFFE67E22).withOpacity(0.15);
         break;
-      case 'Completed':
+      case 'Selesai':
         statusColor = Colors.green;
-        statusBgColor = Colors.green.withOpacity(0.1);
+        statusBgColor = Colors.green.withOpacity(0.15);
         break;
-      case 'Cancelled':
+      case 'Dibatalkan':
         statusColor = Colors.red;
-        statusBgColor = Colors.red.withOpacity(0.1);
+        statusBgColor = Colors.red.withOpacity(0.15);
         break;
       default:
         statusColor = Colors.grey;
-        statusBgColor = Colors.grey.withOpacity(0.1);
+        statusBgColor = Colors.grey.withOpacity(0.15);
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6A5045), Color(0xFF594037)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
           ),
         ],
+        border: Border.all(color: Colors.white.withOpacity(0.06)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -105,48 +114,29 @@ class OrderHistoryScreen extends StatelessWidget {
             // Navigate to Order Detail
              Navigator.pushNamed(context, '/order_detail');
           },
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: Column(
               children: [
                 // Header: ID & Date
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      order['id'],
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1E3A5F),
-                      ),
-                    ),
-                    Text(
-                      order['date'],
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(height: 24),
-                
-                // Content: Image & Details
-                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        image: DecorationImage(
-                          image: AssetImage(order['image']),
-                          fit: BoxFit.cover,
-                        ),
+                      width: 42,
+                      height: 42,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: Image.asset(
+                        'assets/icons/archiveicon.png',
+                        fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,19 +145,97 @@ class OrderHistoryScreen extends StatelessWidget {
                             order['items'],
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF1E3A5F),
-                              fontSize: 14,
+                              color: Colors.white,
+                              fontSize: 15,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            order['total'],
+                            order['id'],
                             style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFE67E22),
-                              fontSize: 14,
+                              fontSize: 11,
+                              color: textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Text(
+                        order['dateTime'],
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+                Container(height: 1, color: dividerColor),
+                const SizedBox(height: 16),
+
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Metode Pembayaran',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: textMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            order['payment'],
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Status Pesanan',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: textMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: statusBgColor,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              order['status'],
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: statusColor,
+                              ),
                             ),
                           ),
                         ],
@@ -175,49 +243,60 @@ class OrderHistoryScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                
-                // Footer: Status & Action
+                Container(height: 1, color: dividerColor),
+                const SizedBox(height: 12),
+
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: statusBgColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        order['status'],
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: statusColor,
-                        ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Total Harga',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: textMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Rp ${order['total']}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    if (order['status'] == 'Completed')
-                      SizedBox(
-                        height: 32,
-                        child: OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFE67E22)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tanggal dan Waktu',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: textMuted,
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
                           ),
-                          child: Text(
-                            'Buy Again',
+                          const SizedBox(height: 4),
+                          Text(
+                            order['dateTime'],
                             style: GoogleFonts.poppins(
                               fontSize: 12,
-                              color: const Color(0xFFE67E22),
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
                             ),
                           ),
-                        ),
+                        ],
                       ),
+                    ),
                   ],
                 ),
               ],
