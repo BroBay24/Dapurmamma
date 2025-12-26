@@ -67,7 +67,6 @@ class OrderHistoryScreen extends StatelessWidget {
     Color statusColor;
     Color statusBgColor;
 
-    const cardColor = Color(0xFF6A5045);
     const dividerColor = Color(0xFFB8A9A0);
     const textMuted = Color(0xFFE6DBD5);
 
