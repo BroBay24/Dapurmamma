@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -39,6 +41,44 @@ class _Product {
   }
 }
 
+class _HomeBanner {
+  const _HomeBanner({
+    this.imageUrl,
+    required this.fallbackAssetPath,
+  });
+
+  // Untuk admin panel: nanti gunakan URL hasil upload.
+  final String? imageUrl;
+
+  // Fallback supaya tetap ada gambar walau URL belum tersedia.
+  final String fallbackAssetPath;
+}
+
+class _BannerImage extends StatelessWidget {
+  const _BannerImage({
+    required this.imageUrl,
+    required this.fallbackAssetPath,
+  });
+
+  final String? imageUrl;
+  final String fallbackAssetPath;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = imageUrl;
+    if (url != null && url.trim().isNotEmpty) {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset(fallbackAssetPath, fit: BoxFit.cover);
+        },
+      );
+    }
+    return Image.asset(fallbackAssetPath, fit: BoxFit.cover);
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -51,11 +91,41 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategoryIndex = 0;
   int _selectedNavIndex = 0;
 
+  final PageController _bannerController = PageController(viewportFraction: 0.92);
+  int _bannerIndex = 0;
+  Timer? _bannerTimer;
+
   late List<_Product> _products;
+  late final List<_HomeBanner> _banners;
 
   @override
   void initState() {
     super.initState();
+    _banners = <_HomeBanner>[
+      const _HomeBanner(
+        imageUrl: null,
+        fallbackAssetPath: 'assets/icons/bolukacang.jpg',
+      ),
+      const _HomeBanner(
+        imageUrl: null,
+        fallbackAssetPath: 'assets/icons/bolukacang.jpg',
+      ),
+      const _HomeBanner(
+        imageUrl: null,
+        fallbackAssetPath: 'assets/icons/bolukacang.jpg',
+      ),
+    ];
+
+    _bannerTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted) return;
+      if (!_bannerController.hasClients) return;
+      final next = (_bannerIndex + 1) % _banners.length;
+      _bannerController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOut,
+      );
+    });
     _products = <_Product>[
       const _Product(
         name: 'Choco Lava',
@@ -103,6 +173,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void dispose() {
+    _bannerTimer?.cancel();
+    _bannerController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -110,6 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             _buildHeader(),
+            _buildBannerCarousel(),
             _buildSearchBar(),
             _buildCategories(),
             Padding(
@@ -190,6 +268,106 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBannerCarousel() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 160,
+            child: PageView.builder(
+              controller: _bannerController,
+              itemCount: _banners.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _bannerIndex = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                final banner = _banners[index];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _BannerImage(
+                          imageUrl: banner.imageUrl,
+                          fallbackAssetPath: banner.fallbackAssetPath,
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.black.withOpacity(0.35),
+                                Colors.black.withOpacity(0.10),
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 14,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: InkWell(
+                              onTap: () {
+                                final next = (_bannerIndex + 1) % _banners.length;
+                                _bannerController.animateToPage(
+                                  next,
+                                  duration: const Duration(milliseconds: 320),
+                                  curve: Curves.easeOut,
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(999),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.95),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward,
+                                  color: Color(0xFF1E3A5F),
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: List.generate(_banners.length, (i) {
+              final isActive = i == _bannerIndex;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.only(left: 6),
+                width: isActive ? 18 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: isActive ? const Color(0xFFE67E22) : Colors.grey.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              );
+            }),
           ),
         ],
       ),
