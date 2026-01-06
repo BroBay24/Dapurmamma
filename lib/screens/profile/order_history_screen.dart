@@ -49,15 +49,45 @@ class OrderHistoryScreen extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E3A5F)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.pop(context);
+              return;
+            }
+
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/home',
+              (route) => false,
+            );
+          },
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: orders.length,
-        itemBuilder: (context, index) {
-          final order = orders[index];
-          return _buildOrderCard(context, order);
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool isWide = constraints.maxWidth >= 900;
+          final double maxWidth = isWide ? 1100 : constraints.maxWidth;
+          final double horizontalPadding = isWide ? 24 : 20;
+          final double cardWidth = isWide ? (maxWidth - 16) / 2 : maxWidth;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: orders.map((order) {
+                    return SizedBox(
+                      width: cardWidth,
+                      child: _buildOrderCard(context, order),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          );
         },
       ),
     );
@@ -109,10 +139,7 @@ class OrderHistoryScreen extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            // Navigate to Order Detail
-             Navigator.pushNamed(context, '/order_detail');
-          },
+          onTap: null,
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.all(18),

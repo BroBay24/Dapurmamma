@@ -181,42 +181,77 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildBannerCarousel(),
-            _buildSearchBar(),
-            _buildCategories(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Popular Now',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isWide = constraints.maxWidth >= 1000;
+        final double maxContentWidth = isWide ? 1200 : constraints.maxWidth;
+        final double horizontalPadding = isWide ? 28 : 20;
+        final int gridCrossAxisCount = constraints.maxWidth >= 1250
+            ? 4
+            : constraints.maxWidth >= 900
+                ? 3
+                : 2;
+        final double gridAspectRatio = constraints.maxWidth >= 1250
+            ? 0.98
+            : constraints.maxWidth >= 900
+                ? 0.95
+                : 0.90;
+        final double bannerHeight = isWide ? 200 : 160;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF5F5F5),
+          body: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxContentWidth),
+                child: Column(
+                  children: [
+                    _buildHeader(horizontalPadding),
+                    _buildBannerCarousel(horizontalPadding, bannerHeight),
+                    _buildSearchBar(horizontalPadding),
+                    _buildCategories(horizontalPadding),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        16,
+                        horizontalPadding,
+                        10,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Popular Now',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: _buildProductGrid(
+                        gridCrossAxisCount,
+                        horizontalPadding,
+                        gridAspectRatio,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            Expanded(child: _buildProductGrid()),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavBar(),
+          ),
+          bottomNavigationBar: _buildBottomNavBar(),
+        );
+      },
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(double horizontalPadding) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -274,13 +309,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBannerCarousel() {
+  Widget _buildBannerCarousel(double horizontalPadding, double bannerHeight) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 6, horizontalPadding, 6),
       child: Column(
         children: [
           SizedBox(
-            height: 160,
+            height: bannerHeight,
             child: PageView.builder(
               controller: _bannerController,
               itemCount: _banners.length,
@@ -374,9 +409,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(double horizontalPadding) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -408,12 +443,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategories() {
+  Widget _buildCategories(double horizontalPadding) {
     return SizedBox(
       height: 45,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding - 4),
         itemCount: _categories.length,
         itemBuilder: (context, index) {
           final isSelected = _selectedCategoryIndex == index;
@@ -448,14 +483,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildProductGrid() {
+  Widget _buildProductGrid(
+    int crossAxisCount,
+    double horizontalPadding,
+    double childAspectRatio,
+  ) {
     return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 0.90,
+        childAspectRatio: childAspectRatio,
       ),
       cacheExtent: 800,
       itemCount: _products.length,
@@ -602,17 +641,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBottomNavBar() {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+        padding: const EdgeInsets.fromLTRB(20, 6, 20, 10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: const Color(0xFFE67E22),
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withAlpha(31),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -652,33 +691,33 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: SizedBox(
-        width: 48,
-        height: 48,
+        width: 42,
+        height: 42,
         child: Center(
           child: isSelected
               ? Container(
-                  width: 44,
-                  height: 44,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withAlpha(26),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
                   child: Icon(
                     icon,
-                    size: 24,
+                    size: 21,
                     color: const Color(0xFFE67E22),
                   ),
                 )
               : Icon(
                   icon,
-                  size: 24,
+                  size: 21,
                   color: Colors.white.withAlpha(235),
                 ),
         ),
