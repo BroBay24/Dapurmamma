@@ -1,11 +1,8 @@
 import 'dart:async';
- 
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:myapp/screens/favorite_screen.dart';
-import 'package:myapp/screens/notification_screen.dart';
-import 'package:myapp/screens/profile/profile_screen.dart';
- 
+
 class _Product {
   const _Product({
     required this.name,
@@ -15,16 +12,16 @@ class _Product {
     required this.isFavorite,
     this.imageUrl,
   });
- 
+
   final String name;
   final String store;
   final int price;
- 
+
   // Untuk sekarang pakai asset statis; nanti bisa diganti URL dari panel admin.
   final String fallbackAssetPath;
   final String? imageUrl;
   final bool isFavorite;
- 
+
   _Product copyWith({
     String? name,
     String? store,
@@ -43,23 +40,29 @@ class _Product {
     );
   }
 }
- 
+
 class _HomeBanner {
-  const _HomeBanner({this.imageUrl, required this.fallbackAssetPath});
- 
+  const _HomeBanner({
+    this.imageUrl,
+    required this.fallbackAssetPath,
+  });
+
   // Untuk admin panel: nanti gunakan URL hasil upload.
   final String? imageUrl;
- 
+
   // Fallback supaya tetap ada gambar walau URL belum tersedia.
   final String fallbackAssetPath;
 }
- 
+
 class _BannerImage extends StatelessWidget {
-  const _BannerImage({required this.imageUrl, required this.fallbackAssetPath});
- 
+  const _BannerImage({
+    required this.imageUrl,
+    required this.fallbackAssetPath,
+  });
+
   final String? imageUrl;
   final String fallbackAssetPath;
- 
+
   @override
   Widget build(BuildContext context) {
     final url = imageUrl;
@@ -75,34 +78,26 @@ class _BannerImage extends StatelessWidget {
     return Image.asset(fallbackAssetPath, fit: BoxFit.cover);
   }
 }
- 
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
- 
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
- 
+
 class _HomeScreenState extends State<HomeScreen> {
-  final List<String> _categories = const [
-    'All',
-    'Cake',
-    'Cookies',
-    'Dessert',
-    'Bread',
-  ];
+  final List<String> _categories = const ['All', 'Cake', 'Cookies', 'Dessert', 'Bread'];
   int _selectedCategoryIndex = 0;
   int _selectedNavIndex = 0;
- 
-  final PageController _bannerController = PageController(
-    viewportFraction: 0.92,
-  );
+
+  final PageController _bannerController = PageController(viewportFraction: 0.92);
   int _bannerIndex = 0;
   Timer? _bannerTimer;
- 
+
   late List<_Product> _products;
   late final List<_HomeBanner> _banners;
- 
+
   @override
   void initState() {
     super.initState();
@@ -120,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
         fallbackAssetPath: 'assets/icons/bolukacang.jpg',
       ),
     ];
- 
+
     _bannerTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted) return;
       if (!_bannerController.hasClients) return;
@@ -176,129 +171,85 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
   }
- 
+
   @override
   void dispose() {
     _bannerTimer?.cancel();
     _bannerController.dispose();
     super.dispose();
   }
- 
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: SafeArea(
-        child: IndexedStack(
-          index: _selectedNavIndex,
-          children: [
-            _buildHomeContent(context),
-            const FavoriteScreen(embedded: true),
-            const NotificationScreen(embedded: true),
-            const ProfileScreen(embedded: true),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavBar(),
-    );
-  }
- 
-  Widget _buildHomeContent(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final horizontalPadding = width >= 1200
-            ? 48.0
-            : width >= 900
-            ? 36.0
-            : width >= 650
-            ? 24.0
-            : 16.0;
-        final bannerHeight = width >= 1200
-            ? 260.0
-            : width >= 900
-            ? 230.0
-            : width >= 650
-            ? 190.0
-            : 160.0;
-        final gridColumns = width >= 1400
-            ? 5
-            : width >= 1200
+        final bool isWide = constraints.maxWidth >= 1000;
+        final double maxContentWidth = isWide ? 1200 : constraints.maxWidth;
+        final double horizontalPadding = isWide ? 28 : 20;
+        final int gridCrossAxisCount = constraints.maxWidth >= 1250
             ? 4
-            : width >= 900
-            ? 3
-            : width >= 650
-            ? 2
-            : 1;
-        final gridAspectRatio = width >= 1400
-            ? 1.42
-            : width >= 1200
-            ? 1.32
-            : width >= 900
-            ? 1.24
-            : width >= 650
-            ? 1.14
-            : 1.5;
-        final imageHeight = width >= 1200
-            ? 120.0
-            : width >= 900
-            ? 110.0
-            : width >= 650
-            ? 90.0
-            : 130.0;
- 
-        final gridTileWidth =
-            (width - (horizontalPadding * 2) - (16 * (gridColumns - 1))) /
-            gridColumns;
-        final gridTileHeight = (gridTileWidth / gridAspectRatio) + 30;
- 
-        return Column(
-          children: [
-            _buildHeader(horizontalPadding: horizontalPadding),
-            _buildBannerCarousel(
-              horizontalPadding: horizontalPadding,
-              bannerHeight: bannerHeight,
-            ),
-            _buildSearchBar(horizontalPadding: horizontalPadding),
-            _buildCategories(horizontalPadding: horizontalPadding),
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                16,
-                horizontalPadding,
-                10,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Popular Now',
-                    style: GoogleFonts.poppins(
-                      fontSize: screenWidth >= 900 ? 20 : 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+            : constraints.maxWidth >= 900
+                ? 3
+                : 2;
+        final double gridAspectRatio = constraints.maxWidth >= 1250
+            ? 0.98
+            : constraints.maxWidth >= 900
+                ? 0.95
+                : 0.90;
+        final double bannerHeight = isWide ? 200 : 160;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF5F5F5),
+          body: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxContentWidth),
+                child: Column(
+                  children: [
+                    _buildHeader(horizontalPadding),
+                    _buildBannerCarousel(horizontalPadding, bannerHeight),
+                    _buildSearchBar(horizontalPadding),
+                    _buildCategories(horizontalPadding),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        16,
+                        horizontalPadding,
+                        10,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Popular Now',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: _buildProductGrid(
+                        gridCrossAxisCount,
+                        horizontalPadding,
+                        gridAspectRatio,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            Expanded(
-              child: _buildProductGrid(
-                horizontalPadding: horizontalPadding,
-                crossAxisCount: gridColumns,
-                childAspectRatio: gridAspectRatio,
-                itemHeight: gridTileHeight,
-                imageHeight: imageHeight,
-              ),
-            ),
-          ],
+          ),
+          bottomNavigationBar: _buildBottomNavBar(),
         );
       },
     );
   }
- 
-  Widget _buildHeader({required double horizontalPadding}) {
+
+  Widget _buildHeader(double horizontalPadding) {
     return Padding(
       padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 8),
       child: Row(
@@ -357,11 +308,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
- 
-  Widget _buildBannerCarousel({
-    required double horizontalPadding,
-    required double bannerHeight,
-  }) {
+
+  Widget _buildBannerCarousel(double horizontalPadding, double bannerHeight) {
     return Padding(
       padding: EdgeInsets.fromLTRB(horizontalPadding, 6, horizontalPadding, 6),
       child: Column(
@@ -408,8 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Center(
                             child: InkWell(
                               onTap: () {
-                                final next =
-                                    (_bannerIndex + 1) % _banners.length;
+                                final next = (_bannerIndex + 1) % _banners.length;
                                 _bannerController.animateToPage(
                                   next,
                                   duration: const Duration(milliseconds: 320),
@@ -451,9 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: isActive ? 18 : 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: isActive
-                      ? const Color(0xFFE67E22)
-                      : Colors.grey.withOpacity(0.4),
+                  color: isActive ? const Color(0xFFE67E22) : Colors.grey.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(99),
                 ),
               );
@@ -463,13 +408,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
- 
-  Widget _buildSearchBar({required double horizontalPadding}) {
+
+  Widget _buildSearchBar(double horizontalPadding) {
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: 12,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -500,8 +442,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
- 
-  Widget _buildCategories({required double horizontalPadding}) {
+
+  Widget _buildCategories(double horizontalPadding) {
     return SizedBox(
       height: 45,
       child: ListView.builder(
@@ -523,9 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: isSelected ? const Color(0xFF1E3A5F) : Colors.white,
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF1E3A5F)
-                      : Colors.grey[300]!,
+                  color: isSelected ? const Color(0xFF1E3A5F) : Colors.grey[300]!,
                 ),
               ),
               child: Text(
@@ -542,14 +482,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
- 
-  Widget _buildProductGrid({
-    required double horizontalPadding,
-    required int crossAxisCount,
-    required double childAspectRatio,
-    required double itemHeight,
-    required double imageHeight,
-  }) {
+
+  Widget _buildProductGrid(
+    int crossAxisCount,
+    double horizontalPadding,
+    double childAspectRatio,
+  ) {
     return GridView.builder(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -557,17 +495,16 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
         childAspectRatio: childAspectRatio,
-        mainAxisExtent: itemHeight,
       ),
       cacheExtent: 800,
       itemCount: _products.length,
       itemBuilder: (context, index) {
-        return _buildProductCard(_products[index], index, imageHeight);
+        return _buildProductCard(_products[index], index);
       },
     );
   }
- 
-  Widget _buildProductCard(_Product product, int index, double imageHeight) {
+
+  Widget _buildProductCard(_Product product, int index) {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, '/product_detail');
@@ -593,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: _buildProductImage(product, imageHeight),
+                  child: _buildProductImage(product),
                 ),
               ),
               Padding(
@@ -604,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       product.name,
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Colors.black87,
                       ),
@@ -615,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       product.store,
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: Colors.grey[500],
                       ),
                       maxLines: 1,
@@ -639,9 +576,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         GestureDetector(
                           onTap: () {
                             setState(() {
-                              _products[index] = _products[index].copyWith(
-                                isFavorite: !product.isFavorite,
-                              );
+                              _products[index] = _products[index]
+                                  .copyWith(isFavorite: !product.isFavorite);
                             });
                           },
                           child: Icon(
@@ -649,9 +585,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ? Icons.favorite
                                 : Icons.favorite_border,
                             size: 22,
-                            color: product.isFavorite
-                                ? Colors.red
-                                : Colors.black54,
+                            color: product.isFavorite ? Colors.red : Colors.black54,
                           ),
                         ),
                       ],
@@ -665,8 +599,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
- 
-  Widget _buildProductImage(_Product product, double height) {
+
+  Widget _buildProductImage(_Product product) {
+    const double height = 86;
+
     if (product.imageUrl != null && product.imageUrl!.trim().isNotEmpty) {
       return Image.network(
         product.imageUrl!,
@@ -685,7 +621,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
     }
- 
+
     return Image.asset(
       product.fallbackAssetPath,
       height: height,
@@ -694,96 +630,96 @@ class _HomeScreenState extends State<HomeScreen> {
       filterQuality: FilterQuality.low,
     );
   }
- 
+
   String _formatPrice(int price) {
     return price.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',
     );
   }
- 
+
   Widget _buildBottomNavBar() {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+        padding: const EdgeInsets.fromLTRB(20, 6, 20, 10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFE67E22), Color(0xFFF39C12)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(32),
+            color: const Color(0xFFE67E22),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFE67E22).withAlpha(90),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
+                color: Colors.black.withAlpha(31),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildNavItem(0, Icons.home_rounded, 'Home'),
-              _buildNavItem(1, Icons.favorite_border_rounded, 'Favorit'),
-              _buildNavItem(2, Icons.notifications_none_rounded, 'Info'),
-              _buildNavItem(3, Icons.person_outline_rounded, 'Akun'),
+              _buildNavItem(0, Icons.home_rounded),
+              _buildNavItem(1, Icons.favorite_border_rounded),
+              _buildNavItem(2, Icons.notifications_none_rounded),
+              _buildNavItem(3, Icons.person_outline_rounded),
             ],
           ),
         ),
       ),
     );
   }
- 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+
+  Widget _buildNavItem(int index, IconData icon) {
     final isSelected = _selectedNavIndex == index;
     return GestureDetector(
       onTap: () {
         setState(() {
           _selectedNavIndex = index;
         });
+        switch (index) {
+          case 0:
+            break;
+          case 1:
+            Navigator.pushNamed(context, '/favorite');
+            break;
+          case 2:
+            Navigator.pushNamed(context, '/notification');
+            break;
+          case 3:
+            Navigator.pushNamed(context, '/profile');
+            break;
+        }
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 12 : 10,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 22,
-              color: isSelected ? const Color(0xFFE67E22) : Colors.white,
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              child: SizedBox(width: isSelected ? 6 : 0),
-            ),
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 180),
-              opacity: isSelected ? 1 : 0,
-              child: isSelected
-                  ? Text(
-                      label,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFFE67E22),
+      child: SizedBox(
+        width: 42,
+        height: 42,
+        child: Center(
+          child: isSelected
+              ? Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(26),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 21,
+                    color: const Color(0xFFE67E22),
+                  ),
+                )
+              : Icon(
+                  icon,
+                  size: 21,
+                  color: Colors.white.withAlpha(235),
+                ),
         ),
       ),
     );
