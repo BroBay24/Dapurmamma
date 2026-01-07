@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
               child: ScaleTransition(
                 scale: _scaleAnimation,
                 child: Image.asset(
-                  'web/icons/Cake_Mamma_Icon_Chef-removebg-preview.png',
+                  'assets/icons/DapurMamma.png',
                   width: 200,
                   height: 200,
                   fit: BoxFit.contain,
