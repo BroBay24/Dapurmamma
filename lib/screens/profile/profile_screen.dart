@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -15,6 +17,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final body = _buildBody(context);
+    if (widget.embedded) {
+      return Container(
+        color: Colors.grey[50],
+        child: Column(
+          children: [
+            _buildEmbeddedHeader(),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -33,137 +48,156 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // 1. Profile Header
-            const SizedBox(height: 10),
-            Center(
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFE67E22), // Orange border
-                        width: 2,
+      body: body,
+    );
+  }
+
+  Widget _buildEmbeddedHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          'My Profile',
+          style: GoogleFonts.lobster(
+            color: const Color(0xFF1E3A5F),
+            fontSize: 22,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          // 1. Profile Header
+          const SizedBox(height: 10),
+          Center(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFE67E22), // Orange border
+                      width: 2,
+                    ),
+                  ),
+                  child: const CircleAvatar(
+                    radius: 50,
+                    backgroundImage: AssetImage('assets/icons/bolukacang.jpg'), // Ganti dengan foto user nanti
+                    // Jika belum ada foto, bisa pakai child: Icon(Icons.person)
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _userName,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1E3A5F),
+                  ),
+                ),
+                Text(
+                  _userEmail,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 30),
+
+          // 2. Menu Options
+          _buildProfileMenu(
+            icon: Icons.person_outline,
+            title: 'Edit Profile',
+            onTap: () async {
+              final result = await Navigator.pushNamed(
+                context,
+                '/edit_profile',
+                arguments: {
+                  'name': _userName,
+                  'email': _userEmail,
+                  'phone': _userPhone,
+                },
+              );
+              if (result != null && result is String) {
+                setState(() {
+                  _userName = result;
+                });
+              }
+            },
+          ),
+          _buildProfileMenu(
+            icon: Icons.history,
+            title: 'Order History',
+            onTap: () => Navigator.pushNamed(context, '/order_history'),
+          ),
+
+          const SizedBox(height: 20),
+
+          // 3. Logout Button
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 10),
+            child: ElevatedButton(
+              onPressed: () {
+                // Tampilkan dialog konfirmasi logout
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Logout', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                    content: Text('Are you sure you want to logout?', style: GoogleFonts.poppins()),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Cancel', style: GoogleFonts.poppins(color: Colors.grey)),
                       ),
-                    ),
-                    child: const CircleAvatar(
-                      radius: 50,
-                      backgroundImage: AssetImage('assets/icons/bolukacang.jpg'), // Ganti dengan foto user nanti
-                      // Jika belum ada foto, bisa pakai child: Icon(Icons.person)
-                    ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Tutup dialog
+                          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                        },
+                        child: Text('Logout', style: GoogleFonts.poppins(color: Colors.red)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[50],
+                foregroundColor: Colors.red,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.logout, size: 20),
+                  const SizedBox(width: 8),
                   Text(
-                    _userName,
+                    'Log Out',
                     style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1E3A5F),
-                    ),
-                  ),
-                  Text(
-                    _userEmail,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.grey,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 30),
-
-            // 2. Menu Options
-            _buildProfileMenu(
-              icon: Icons.person_outline,
-              title: 'Edit Profile',
-              onTap: () async {
-                final result = await Navigator.pushNamed(
-                  context,
-                  '/edit_profile',
-                  arguments: {
-                    'name': _userName,
-                    'email': _userEmail,
-                    'phone': _userPhone,
-                  },
-                );
-                if (result != null && result is String) {
-                  setState(() {
-                    _userName = result;
-                  });
-                }
-              },
-            ),
-            _buildProfileMenu(
-              icon: Icons.history,
-              title: 'Order History',
-              onTap: () => Navigator.pushNamed(context, '/order_history'),
-            ),
-    
-
-            const SizedBox(height: 20),
-
-            // 3. Logout Button
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(top: 10),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Tampilkan dialog konfirmasi logout
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Logout', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-                      content: Text('Are you sure you want to logout?', style: GoogleFonts.poppins()),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Cancel', style: GoogleFonts.poppins(color: Colors.grey)),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context); // Tutup dialog
-                            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                          },
-                          child: Text('Logout', style: GoogleFonts.poppins(color: Colors.red)),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red[50],
-                  foregroundColor: Colors.red,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.logout, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Log Out',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

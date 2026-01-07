@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class NotificationScreen extends StatelessWidget {
-  const NotificationScreen({super.key});
+  const NotificationScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +32,19 @@ class NotificationScreen extends StatelessWidget {
         'isRead': true,
       },
     ];
+
+    final body = _buildBody(notifications);
+    if (embedded) {
+      return Container(
+        color: Colors.grey[50],
+        child: Column(
+          children: [
+            _buildEmbeddedHeader(),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -62,15 +77,48 @@ class NotificationScreen extends StatelessWidget {
           )
         ],
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(20),
-        itemCount: notifications.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
-          final item = notifications[index];
-          return _buildNotificationCard(item);
-        },
+      body: body,
+    );
+  }
+
+  Widget _buildEmbeddedHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Notifications',
+            style: GoogleFonts.lobster(
+              color: const Color(0xFF1E3A5F),
+              fontSize: 22,
+            ),
+          ),
+          TextButton(
+            onPressed: () {},
+            child: Text(
+              "Mark all read",
+              style: GoogleFonts.poppins(
+                color: const Color(0xFFE67E22),
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildBody(List<Map<String, dynamic>> notifications) {
+    return ListView.separated(
+      padding: const EdgeInsets.all(20),
+      itemCount: notifications.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        final item = notifications[index];
+        return _buildNotificationCard(item);
+      },
     );
   }
 

@@ -49,46 +49,43 @@ class OrderHistoryScreen extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E3A5F)),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.pop(context);
-              return;
-            }
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final horizontalPadding = width >= 1200
+                ? 48.0
+                : width >= 900
+                    ? 36.0
+                    : width >= 650
+                        ? 24.0
+                        : 16.0;
+            final crossAxisCount = width >= 1200
+                ? 3
+                : width >= 900
+                    ? 2
+                    : 1;
+            final childAspectRatio = crossAxisCount == 1 ? 1.9 : 1.55;
 
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              '/home',
-              (route) => false,
+            return GridView.builder(
+              padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 24),
+              itemCount: orders.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: childAspectRatio,
+              ),
+              itemBuilder: (context, index) {
+                final order = orders[index];
+                return _buildOrderCard(context, order);
+              },
             );
           },
         ),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final bool isWide = constraints.maxWidth >= 900;
-          final double maxWidth = isWide ? 1100 : constraints.maxWidth;
-          final double horizontalPadding = isWide ? 24 : 20;
-          final double cardWidth = isWide ? (maxWidth - 16) / 2 : maxWidth;
-
-          return SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 24),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: orders.map((order) {
-                    return SizedBox(
-                      width: cardWidth,
-                      child: _buildOrderCard(context, order),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          );
-        },
       ),
     );
   }
@@ -119,7 +116,6 @@ class OrderHistoryScreen extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF6A5045), Color(0xFF594037)],
@@ -139,7 +135,10 @@ class OrderHistoryScreen extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: null,
+          onTap: () {
+            // Navigate to Order Detail
+             Navigator.pushNamed(context, '/order_detail');
+          },
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.all(18),
