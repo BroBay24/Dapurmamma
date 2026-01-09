@@ -34,10 +34,7 @@ class DefaultFirebaseOptions {
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -66,4 +63,14 @@ class DefaultFirebaseOptions {
     projectId: 'cake-mamma-13154',
     storageBucket: 'cake-mamma-13154.firebasestorage.app',
   );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyAxSgetytrD_qIbeAY7bhaebT30WMjCWik',
+    appId: '1:17741994482:web:d23d61f21fca73426cb36b',
+    messagingSenderId: '17741994482',
+    projectId: 'cake-mamma-13154',
+    authDomain: 'cake-mamma-13154.firebaseapp.com',
+    storageBucket: 'cake-mamma-13154.firebasestorage.app',
+  );
+
 }

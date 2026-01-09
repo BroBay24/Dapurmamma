@@ -16,11 +16,8 @@ import 'screens/profile/edit_profile_screen.dart';
 import 'screens/profile/order_history_screen.dart';
 import 'screens/success_screen.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
   runApp(const MyApp());
 }
 
@@ -49,7 +46,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const SplashScreen(),
+      home: const _AppBootstrap(),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
@@ -65,6 +62,110 @@ class MyApp extends StatelessWidget {
         '/success': (context) => const SuccessScreen(),
         '/auth_gate':(context) => const AuthGate(),
       },
+    );
+  }
+}
+
+class _AppBootstrap extends StatelessWidget {
+  const _AppBootstrap();
+
+  Future<void> _initFirebase() async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _initFirebase(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _BootstrapLoading();
+        }
+
+        if (snapshot.hasError) {
+          return _FirebaseInitErrorScreen(error: snapshot.error);
+        }
+
+        // Firebase ready; proceed to your existing flow.
+        return const SplashScreen();
+      },
+    );
+  }
+}
+
+class _BootstrapLoading extends StatelessWidget {
+  const _BootstrapLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Color(0xFFB71C1C),
+      body: Center(
+        child: SizedBox(
+          width: 200,
+          height: 200,
+          child: Image(
+            image: AssetImage('assets/icons/DapurMamma.png'),
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FirebaseInitErrorScreen extends StatelessWidget {
+  const _FirebaseInitErrorScreen({required this.error});
+
+  final Object? error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F6F6),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Firebase belum dikonfigurasi untuk Windows',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Aplikasi tidak bisa lanjut karena inisialisasi Firebase gagal. '
+                  'Ini sering terjadi jika file firebase_options.dart belum memiliki konfigurasi Windows.',
+                  style: TextStyle(color: Colors.grey.shade800, height: 1.35),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Detail: ${error ?? '-'}',
+                  style: TextStyle(color: Colors.grey.shade700, height: 1.35),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Perbaikan:',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '1) Jalankan: flutterfire configure\n'
+                  '2) Pastikan memilih platform Windows\n'
+                  '3) Build ulang: flutter build windows',
+                  style: TextStyle(color: Colors.grey.shade800, height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
