@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Products - publik baca, write sementara dibuka untuk debugging
+    match /products/{doc} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Banners - publik baca, write sementara dibuka untuk debugging
+    match /banners/{doc} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Orders - write sementara dibuka untuk debugging
+    match /orders/{doc} {
+      allow read, write: if true;
+    }
+
+    // Default: block everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

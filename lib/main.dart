@@ -15,6 +15,12 @@ import 'screens/profile/profile_screen.dart';
 import 'screens/profile/edit_profile_screen.dart';
 import 'screens/profile/order_history_screen.dart';
 import 'screens/success_screen.dart';
+// Admin Panel imports
+import 'admin/screens/admin_dashboard_screen.dart';
+import 'admin/screens/admin_products_screen.dart';
+import 'admin/screens/admin_banners_screen.dart';
+import 'admin/screens/admin_orders_screen.dart';
+import 'admin/screens/admin_login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +67,12 @@ class MyApp extends StatelessWidget {
         '/order_history': (context) => const OrderHistoryScreen(),
         '/success': (context) => const SuccessScreen(),
         '/auth_gate':(context) => const AuthGate(),
+        // Admin Panel routes
+        '/admin/login': (context) => const AdminLoginScreen(),
+        '/admin': (context) => const AdminDashboardScreen(),
+        '/admin/products': (context) => const AdminProductsScreen(),
+        '/admin/banners': (context) => const AdminBannersScreen(),
+        '/admin/orders': (context) => const AdminOrdersScreen(),
       },
     );
   }

@@ -1,0 +1,7 @@
+# Ignore service account key (JANGAN PERNAH COMMIT!)
+serviceAccountKey.json
+*.json
+!package.json
+
+# Node modules
+node_modules/
