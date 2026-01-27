@@ -41,6 +41,8 @@ dependencies:
   http: ^1.6.0
   image_picker: ^1.2.1
   intl: ^0.20.2
+  cloud_functions: ^6.0.6
+  midtrans_sdk: ^1.2.0
 
 dev_dependencies:
   flutter_test:

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/repositories/favorite_repository.dart';
 import '../../data/repositories/product_repository.dart';
 import '../../data/models/product_model.dart';
+import '../../data/models/order_model.dart';
 import 'dart:async';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -461,7 +462,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               height: 52,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/order_detail');
+                  final item = OrderItemModel(
+                    productId: argId,
+                    productName: name,
+                    quantity: _quantity,
+                    price: basePrice,
+                  );
+
+                  Navigator.pushNamed(
+                    context,
+                    '/order_detail',
+                    arguments: {
+                      'checkoutData': {
+                        'items': [item],
+                        'total': price, // Ini adalah totalPrice (basePrice * quantity)
+                      }
+                    },
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF111111),
