@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:myapp/auth_gate.dart';
-import 'package:myapp/firebase_options.dart';
+import 'package:dapurmamma/auth_gate.dart';
+import 'package:dapurmamma/firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';

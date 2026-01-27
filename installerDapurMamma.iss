@@ -12,30 +12,30 @@ ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 DisableProgramGroupPage=yes
 CloseApplications=yes
-CloseApplicationsFilter=myapp.exe
+CloseApplicationsFilter=DapurMamma.exe
 RestartApplications=yes
 AppMutex=Dapurmamma
 
 [Files]
-Source: "build\windows\x64\runner\Release\myapp.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace
+Source: "build\windows\x64\runner\Release\DapurMamma.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace
 Source: "build\windows\x64\runner\Release\flutter_windows.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace
 Source: "build\windows\x64\runner\Release\data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Optional (recommended): bundle VC++ Runtime so app doesn't immediately exit on fresh PCs.
-; Download "Visual C++ Redistributable for Visual Studio 2015-20Start-Process "C:\Cakemamma\Dapurmamma\build\windows\x64\runner\Release\myapp.exe"22 (x64)" and place it as:
+; Download "Visual C++ Redistributable for Visual Studio 2015-20Start-Process "C:\Cakemamma\Dapurmamma\build\windows\x64\runner\Release\DapurMamma.exe"22 (x64)" and place it as:
 ;   installer\vcredist_x64.exe
 ; Then uncomment the line below.
 Source: "installer\vcredist_x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
-Name: "{group}\Dapurmamma"; Filename: "{app}\myapp.exe"; WorkingDir: "{app}"
-Name: "{commondesktop}\Dapurmamma"; Filename: "{app}\myapp.exe"; WorkingDir: "{app}"
+Name: "{group}\Dapurmamma"; Filename: "{app}\DapurMamma.exe"; WorkingDir: "{app}"
+Name: "{commondesktop}\Dapurmamma"; Filename: "{app}\DapurMamma.exe"; WorkingDir: "{app}"
 
 [Run]
 ; If you bundled vc_redist.x64.exe above, enable the line below too.
 Filename: "{tmp}\vcredist_x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Microsoft VC++ Runtime..."; Flags: waituntilterminated skipifsilent; Check: not IsVCRuntimeInstalled
 
-Filename: "{app}\myapp.exe"; Description: "Run Dapurmamma"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\DapurMamma.exe"; Description: "Run Dapurmamma"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent
 
 [Code]
 function IsVCRuntimeInstalled: Boolean;
