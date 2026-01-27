@@ -1,38 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import '../../data/models/order_model.dart';
+import '../../data/repositories/order_repository.dart';
 
 class OrderHistoryScreen extends StatelessWidget {
   const OrderHistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Dummy Data (silakan sambungkan ke backend)
-    final List<Map<String, dynamic>> orders = [
-      {
-        'id': 'ID-01',
-        'dateTime': '10 Des 2025, 18:45',
-        'items': 'Bolu Coklat Kacang',
-        'total': '20.000',
-        'status': 'Diproses',
-        'payment': 'Qris',
-      },
-      {
-        'id': 'ID-02',
-        'dateTime': '10 Des 2025, 18:45',
-        'items': 'Bolu Coklat Durian',
-        'total': '20.000',
-        'status': 'Dibatalkan',
-        'payment': 'Qris',
-      },
-      {
-        'id': 'ID-03',
-        'dateTime': '10 Des 2025, 18:45',
-        'items': 'Bolu Coklat Strawberry',
-        'total': '20.000',
-        'status': 'Selesai',
-        'payment': 'Gopay',
-      },
-    ];
+    final orderRepo = OrderRepository();
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F6F6),
@@ -43,7 +22,7 @@ class OrderHistoryScreen extends StatelessWidget {
         title: Text(
           'Order History',
           style: GoogleFonts.lobster(
-            color: const Color(0xFFE95E2E),
+            color: const Color(0xFFE95E2E), // Menggunakan warna dari icon/theme
             fontSize: 24,
           ),
         ),
@@ -53,60 +32,99 @@ class OrderHistoryScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final horizontalPadding = width >= 1200
-                ? 48.0
-                : width >= 900
-                    ? 36.0
-                    : width >= 650
-                        ? 24.0
-                        : 16.0;
-            final crossAxisCount = width >= 1200
-                ? 3
-                : width >= 900
-                    ? 2
-                    : 1;
-            final childAspectRatio = crossAxisCount == 1 ? 1.9 : 1.55;
+        child: user == null 
+            ? const Center(child: Text("Silakan login untuk melihat riwayat pesanan"))
+            : StreamBuilder<List<OrderModel>>(
+                stream: orderRepo.getUserOrdersStream(user.uid),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-            return GridView.builder(
-              padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 24),
-              itemCount: orders.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Terjadi kesalahan: ${snapshot.error}"));
+                  }
+
+                  final orders = snapshot.data ?? [];
+
+                  if (orders.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.history, size: 80, color: Colors.grey[300]),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Belum ada riwayat pesanan",
+                            style: GoogleFonts.poppins(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final horizontalPadding = width >= 1200
+                          ? 48.0
+                          : width >= 900
+                              ? 36.0
+                              : width >= 650
+                                  ? 24.0
+                                  : 16.0;
+                      final crossAxisCount = width >= 1200
+                          ? 3
+                          : width >= 900
+                              ? 2
+                              : 1;
+                      final childAspectRatio = crossAxisCount == 1 ? 1.9 : 1.55;
+
+                      return GridView.builder(
+                        padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 24),
+                        itemCount: orders.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: childAspectRatio,
+                        ),
+                        itemBuilder: (context, index) {
+                          final order = orders[index];
+                          return _buildOrderCard(context, order);
+                        },
+                      );
+                    },
+                  );
+                },
               ),
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                return _buildOrderCard(context, order);
-              },
-            );
-          },
-        ),
       ),
     );
   }
 
-  Widget _buildOrderCard(BuildContext context, Map<String, dynamic> order) {
+  Widget _buildOrderCard(BuildContext context, OrderModel order) {
     Color statusColor;
     Color statusBgColor;
 
     const dividerColor = Color(0xFFB8A9A0);
     const textMuted = Color(0xFFE6DBD5);
 
-    switch (order['status']) {
-      case 'Diproses':
+    // Convert OrderStatus enum to string and display label
+    String statusString = OrderModel.statusToString(order.status);
+    String statusDisplay = OrderModel.statusToLabel(order.status);
+    
+    // Simplifikasi mapping warna status
+    switch (statusString) {
+      case 'processing':
+      case 'pending': 
         statusColor = const Color(0xFFE67E22);
         statusBgColor = const Color(0xFFE67E22).withOpacity(0.15);
         break;
-      case 'Selesai':
+      case 'completed':
         statusColor = Colors.green;
         statusBgColor = Colors.green.withOpacity(0.15);
         break;
-      case 'Dibatalkan':
+      case 'cancelled':
         statusColor = Colors.red;
         statusBgColor = Colors.red.withOpacity(0.15);
         break;
@@ -114,6 +132,15 @@ class OrderHistoryScreen extends StatelessWidget {
         statusColor = Colors.grey;
         statusBgColor = Colors.grey.withOpacity(0.15);
     }
+
+    // Format items string
+    String itemsString = order.items.map((e) => e.productName).join(", ");
+    
+    // Format date
+    String dateString = DateFormat('dd MMM yyyy, HH:mm').format(order.createdAt);
+    
+    // Format price
+    String totalString = NumberFormat('#,###', 'id_ID').format(order.total);
 
     return Container(
       decoration: BoxDecoration(
@@ -136,8 +163,8 @@ class OrderHistoryScreen extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // Navigate to Order Detail
-             Navigator.pushNamed(context, '/order_detail');
+            // Navigate to Order Detail using arguments
+             Navigator.pushNamed(context, '/order_detail', arguments: {'order': order});
           },
           borderRadius: BorderRadius.circular(20),
           child: Padding(
@@ -159,6 +186,7 @@ class OrderHistoryScreen extends StatelessWidget {
                       child: Image.asset(
                         'assets/icons/archiveicon.png',
                         fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.receipt, color: Color(0xFF6A5045)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -167,7 +195,7 @@ class OrderHistoryScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            order['items'],
+                            itemsString,
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
@@ -178,7 +206,7 @@ class OrderHistoryScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            order['id'],
+                            order.orderId,
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               color: textMuted,
@@ -195,7 +223,7 @@ class OrderHistoryScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Text(
-                        order['dateTime'],
+                        dateString,
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           color: Colors.white,
@@ -226,7 +254,7 @@ class OrderHistoryScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            order['payment'],
+                            order.paymentMethod,
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -255,7 +283,7 @@ class OrderHistoryScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              order['status'],
+                              statusDisplay,
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -289,7 +317,7 @@ class OrderHistoryScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Rp ${order['total']}',
+                            'Rp $totalString',
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -304,7 +332,7 @@ class OrderHistoryScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Tanggal dan Waktu',
+                            'Last Update',
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               color: textMuted,
@@ -312,7 +340,7 @@ class OrderHistoryScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            order['dateTime'],
+                            DateFormat('HH:mm').format(order.updatedAt),
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,

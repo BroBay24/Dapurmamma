@@ -1,5 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../data/models/product_model.dart';
+import '../data/repositories/favorite_repository.dart';
+import '../data/repositories/product_repository.dart';
 
 class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({super.key, this.embedded = false});
@@ -11,31 +15,53 @@ class FavoriteScreen extends StatefulWidget {
 }
 
 class _FavoriteScreenState extends State<FavoriteScreen> {
-  // Data dummy untuk tampilan
-  final List<Map<String, dynamic>> _favorites = [
-    {
-      'name': 'Choco Lava',
-      'store': 'Sweet Tooth',
-      'price': 35000,
-      'image': 'assets/icons/bolukacang.jpg', // Ganti dengan asset yang ada
-    },
-    {
-      'name': 'Cheese Cake',
-      'store': 'Cakemamma HQ',
-      'price': 45000,
-      'image': 'assets/icons/bolukacang.jpg',
-    },
-    {
-      'name': 'Red Velvet',
-      'store': 'Cakemamma HQ',
-      'price': 50000,
-      'image': 'assets/icons/bolukacang.jpg',
-    },
-  ];
+  final _favRepo = FavoriteRepository();
+  final _prodRepo = ProductRepository();
+  final _user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
-    final body = _buildBody();
+    if (_user == null) {
+      return const Scaffold(
+        body: Center(child: Text("Please login to view favorites")),
+      );
+    }
+
+    final body = StreamBuilder<List<String>>(
+      stream: _favRepo.getFavoriteIdsStream(_user!.uid),
+      builder: (context, favSnapshot) {
+        if (favSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        final favIds = favSnapshot.data ?? [];
+
+        if (favIds.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return StreamBuilder<List<ProductModel>>(
+          stream: _prodRepo.getAllProductsStream(), // Fetch all to filter locally
+          builder: (context, prodSnapshot) {
+             if (prodSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final allProducts = prodSnapshot.data ?? [];
+            final favProducts = allProducts.where((p) => favIds.contains(p.id)).toList();
+
+            if (favProducts.isEmpty) {
+              // IDs exist in favs but products might be deleted/inactive
+              // Optionally cleanup favs here, but for now just show empty
+              return _buildEmptyState();
+            }
+
+            return _buildProductList(favProducts);
+          },
+        );
+      },
+    );
+
     if (widget.embedded) {
       return Container(
         color: Colors.grey[50],
@@ -49,7 +75,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Background agak abu terang biar card pop-up
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -86,32 +112,32 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     );
   }
 
-  Widget _buildBody() {
-    if (_favorites.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.favorite_border, size: 80, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              "No favorites yet",
-              style: GoogleFonts.poppins(
-                color: Colors.grey,
-                fontSize: 16,
-              ),
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.favorite_border, size: 80, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text(
+            "No favorites yet",
+            style: GoogleFonts.poppins(
+              color: Colors.grey,
+              fontSize: 16,
             ),
-          ],
-        ),
-      );
-    }
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildProductList(List<ProductModel> products) {
     return ListView.separated(
       padding: const EdgeInsets.all(20),
-      itemCount: _favorites.length,
+      itemCount: products.length,
       separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        final item = _favorites[index];
+        final product = products[index];
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -133,10 +159,16 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 height: 80,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
-                  image: DecorationImage(
-                    image: AssetImage(item['image']),
-                    fit: BoxFit.cover,
-                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: product.imageUrl.isNotEmpty
+                      ? Image.network(
+                          product.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(color: Colors.grey[200]),
+                        )
+                      : Container(color: Colors.grey[200]),
                 ),
               ),
               const SizedBox(width: 16),
@@ -146,7 +178,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item['name'],
+                      product.name,
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -155,7 +187,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item['store'],
+                      product.category,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.grey,
@@ -163,7 +195,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Rp ${item['price']}',
+                      'Rp ${product.price}', // Format rupiah better if reused helper
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -176,20 +208,19 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
               // Tombol Hapus / Love
               IconButton(
                 onPressed: () {
-                  // Logika hapus nanti disini
-                  setState(() {
-                    _favorites.removeAt(index);
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${item['name']} removed from favorites'),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
+                   if (_user != null) {
+                    _favRepo.removeFavorite(_user!.uid, product.id);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${product.name} removed from favorites'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                   }
                 },
                 icon: const Icon(
                   Icons.favorite,
-                  color: Colors.red, // Merah tanda item ini disukai
+                  color: Colors.red,
                   size: 28,
                 ),
               ),

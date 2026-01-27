@@ -1,9 +1,13 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../data/repositories/favorite_repository.dart';
 import '../../data/repositories/product_repository.dart';
 import '../../data/repositories/banner_repository.dart';
+import '../../data/repositories/user_repository.dart';
 import '../../data/models/product_model.dart';
 import '../../data/models/banner_model.dart';
 
@@ -33,6 +37,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // Repositories
   late final ProductRepository _productRepo;
   late final BannerRepository _bannerRepo;
+  late final FavoriteRepository _favRepo;
+  final User? _user = FirebaseAuth.instance.currentUser;
+  StreamSubscription? _favSubscription;
   
   // Data dari Firestore
   List<ProductModel> _products = [];
@@ -46,8 +53,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _productRepo = ProductRepository();
     _bannerRepo = BannerRepository();
+    _favRepo = FavoriteRepository();
     
     _startBannerTimer();
+
+    // Listen to favorites
+    if (_user != null) {
+      _favSubscription = _favRepo.getFavoriteIdsStream(_user!.uid).listen((ids) {
+        if (mounted) {
+          setState(() {
+            _favoriteIds = ids.toSet();
+          });
+        }
+      });
+    }
   }
 
   void _startBannerTimer() {
@@ -68,6 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _bannerTimer?.cancel();
+    _favSubscription?.cancel();
     _bannerController.dispose();
     super.dispose();
   }
@@ -180,22 +200,34 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, '/profile');
-            },
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey[300]!, width: 2),
-                image: const DecorationImage(
-                  image: AssetImage('assets/icons/bolukacang.jpg'),
-                  fit: BoxFit.cover,
+          StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            stream: UserRepository().getUserStream(),
+            builder: (context, snapshot) {
+              String? photoUrl;
+              if (snapshot.hasData && snapshot.data != null && snapshot.data!.exists) {
+                photoUrl = snapshot.data!.data()?['photoUrl'];
+              }
+              
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/profile');
+                },
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey[300]!, width: 2),
+                    image: DecorationImage(
+                      image: photoUrl != null && photoUrl.isNotEmpty
+                          ? NetworkImage(photoUrl)
+                          : const AssetImage('assets/icons/bolukacang.jpg') as ImageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -218,16 +250,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 final banners = snapshot.data ?? [];
                 
-                // Update local banners
-                if (banners.isNotEmpty && banners != _banners) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      setState(() {
-                        _banners = banners;
-                        _isLoadingBanners = false;
-                      });
-                    }
-                  });
+                // Update local banners for timer logic (without triggering rebuild loop)
+                if (banners.isNotEmpty) {
+                  _banners = banners;
+                  _isLoadingBanners = false;
                 }
 
                 // Jika tidak ada banner, tampilkan placeholder
@@ -646,13 +672,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              setState(() {
+                              if (_user != null) {
                                 if (isFavorite) {
-                                  _favoriteIds.remove(product.id);
+                                  _favRepo.removeFavorite(_user!.uid, product.id);
                                 } else {
-                                  _favoriteIds.add(product.id);
+                                  _favRepo.addFavorite(_user!.uid, product.id);
                                 }
-                              });
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please login to save favorites')),
+                                );
+                              }
                             },
                             child: Icon(
                               isFavorite

@@ -33,11 +33,15 @@ class OrderRepository {
     return _firestore
         .collection(_collection)
         .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => OrderModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+          final orders = snapshot.docs
+              .map((doc) => OrderModel.fromFirestore(doc))
+              .toList();
+          // Sort di client side untuk menghindari composite index
+          orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return orders;
+        });
   }
 
   // Get single order

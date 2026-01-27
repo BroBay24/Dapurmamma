@@ -208,7 +208,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      order.oderId,
+                      order.orderId,
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,

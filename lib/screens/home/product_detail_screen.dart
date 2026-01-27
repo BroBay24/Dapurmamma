@@ -1,5 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../data/repositories/favorite_repository.dart';
+import '../../data/repositories/product_repository.dart';
+import '../../data/models/product_model.dart';
+import 'dart:async';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -9,6 +14,11 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  final ProductRepository _productRepo = ProductRepository();
+  final FavoriteRepository _favRepo = FavoriteRepository();
+  final User? _user = FirebaseAuth.instance.currentUser;
+  StreamSubscription? _favSubscription;
+  
   int _quantity = 1;
   bool _isFavorite = false;
   bool _isDescriptionExpanded = false;
@@ -16,95 +26,132 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final TextEditingController _noteController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // We'll initialize the favorite listener in didChangeDependencies since we need argId
+  }
+
+  bool _isInit = true;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInit && _user != null) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final String argId = (args?['id'] ?? '') as String;
+      
+      _favSubscription = _favRepo.getFavoriteIdsStream(_user!.uid).listen((ids) {
+        if (mounted) {
+          setState(() {
+            _isFavorite = ids.contains(argId);
+          });
+        }
+      });
+      _isInit = false;
+    }
+  }
+
+  @override
   void dispose() {
     _noteController.dispose();
+    _favSubscription?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
-    final String name = (args?['name'] ?? 'Bolu Coklat Vanila') as String;
-    final String id = (args?['id'] ?? 'ID-01') as String;
-    final String image = (args?['image'] ?? 'assets/icons/bolukacang.jpg') as String;
-    final int price = (args?['price'] ?? 50000) as int;
-    final int stock = (args?['stock'] ?? 10) as int;
-    final String description = (args?['description'] ??
-            'Our Strawberry Birthday Cake is made with soft vanilla sponge layers and a light whipped cream frosting. '
-                'Each layer includes a simple, fresh strawberry filling—made from real strawberries—nothing artificial—so the flavor stays naturally sweet and slightly tangy.')
-        as String;
-
-    final bool shouldShowMore = description.trim().length > 170;
+    final String argId = (args?['id'] ?? '') as String;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F6F6),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final horizontalPadding = width >= 1200
-                ? 48.0
-                : width >= 900
-                    ? 36.0
-                    : width >= 650
-                        ? 24.0
-                        : 16.0;
-            final isWide = width >= 900;
-            final imageAspectRatio = isWide ? 16 / 9 : 16 / 10;
+      body: StreamBuilder<ProductModel?>(
+        stream: _productRepo.getProductStream(argId),
+        builder: (context, snapshot) {
+          // Use stream data if available, otherwise fallback to args
+          final product = snapshot.data;
 
-            return Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 14),
-                    child: isWide
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                flex: 6,
-                                child: _buildHeaderCard(
-                                  image: image,
-                                  imageAspectRatio: imageAspectRatio,
-                                ),
+          final String name = product?.name ?? (args?['name'] ?? 'Loading...') as String;
+          // Use readable productId for display if available
+          final String displayId = product?.productId ?? (args?['productId'] ?? (args?['id'] ?? '')) as String;
+          final String image = product?.imageUrl ?? (args?['image'] ?? 'assets/icons/bolukacang.jpg') as String;
+          
+          final int basePrice = product?.price ?? (args?['price'] ?? 0) as int;
+          final int stock = product?.stock ?? (args?['stock'] ?? 0) as int;
+          
+          final String description = product?.description ?? (args?['description'] ?? '') as String;
+          final bool shouldShowMore = description.trim().length > 170;
+
+          // Calculate total price based on quantity
+          final int totalPrice = basePrice * _quantity;
+
+          return SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final horizontalPadding = width >= 1200
+                    ? 48.0
+                    : width >= 900
+                        ? 36.0
+                        : width >= 650
+                            ? 24.0
+                            : 16.0;
+                final isWide = width >= 900;
+                final imageAspectRatio = isWide ? 16 / 9 : 16 / 10;
+
+                return Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 14),
+                        child: isWide
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    flex: 6,
+                                    child: _buildHeaderCard(
+                                      image: image,
+                                      imageAspectRatio: imageAspectRatio,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20),
+                                  Expanded(
+                                    flex: 5,
+                                    child: _buildContentCard(
+                                      name: name,
+                                      id: displayId,
+                                      description: description,
+                                      shouldShowMore: shouldShowMore,
+                                      stock: stock,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  _buildHeaderCard(
+                                    image: image,
+                                    imageAspectRatio: imageAspectRatio,
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _buildContentCard(
+                                    name: name,
+                                    id: displayId,
+                                    description: description,
+                                    shouldShowMore: shouldShowMore,
+                                    stock: stock,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 20),
-                              Expanded(
-                                flex: 5,
-                                child: _buildContentCard(
-                                  name: name,
-                                  id: id,
-                                  description: description,
-                                  shouldShowMore: shouldShowMore,
-                                  stock: stock,
-                                ),
-                              ),
-                            ],
-                          )
-                        : Column(
-                            children: [
-                              _buildHeaderCard(
-                                image: image,
-                                imageAspectRatio: imageAspectRatio,
-                              ),
-                              const SizedBox(height: 14),
-                              _buildContentCard(
-                                name: name,
-                                id: id,
-                                description: description,
-                                shouldShowMore: shouldShowMore,
-                                stock: stock,
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
-                _buildBottomBar(horizontalPadding, price),
-              ],
-            );
-          },
-        ),
+                      ),
+                    ),
+                    _buildBottomBar(horizontalPadding, totalPrice),
+                  ],
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }
@@ -138,7 +185,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               _CircleIconButton(
                 icon: _isFavorite ? Icons.favorite : Icons.favorite_border,
                 iconColor: _isFavorite ? Colors.red : const Color(0xFF1E3A5F),
-                onTap: () => setState(() => _isFavorite = !_isFavorite),
+                onTap: () {
+                  if (_user != null) {
+                    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+                    final String argId = (args?['id'] ?? '') as String;
+                    
+                    if (_isFavorite) {
+                      _favRepo.removeFavorite(_user!.uid, argId);
+                    } else {
+                      _favRepo.addFavorite(_user!.uid, argId);
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please login to save favorites')),
+                    );
+                  }
+                },
               ),
             ],
           ),
@@ -147,10 +209,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             borderRadius: BorderRadius.circular(22),
             child: AspectRatio(
               aspectRatio: imageAspectRatio,
-              child: Image.asset(
-                image,
-                fit: BoxFit.cover,
-              ),
+              child: image.startsWith('http')
+                  ? Image.network(
+                      image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/icons/bolukacang.jpg',
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    )
+                  : Image.asset(
+                      image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(color: Colors.grey[300]);
+                      },
+                    ),
             ),
           ),
         ],

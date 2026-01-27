@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../data/repositories/user_repository.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, this.embedded = false});
@@ -11,44 +14,63 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _userName = "John Doe";
-  final String _userEmail = "johndoe@email.com";
-  final String _userPhone = "081234567890";
+  final _userRepo = UserRepository();
+  final _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
-    final body = _buildBody(context);
-    if (widget.embedded) {
-      return Container(
-        color: Colors.grey[50],
-        child: Column(
-          children: [
-            _buildEmbeddedHeader(),
-            Expanded(child: body),
-          ],
-        ),
-      );
-    }
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: _userRepo.getUserStream(),
+      builder: (context, snapshot) {
+        // Default values
+        String userName = _auth.currentUser?.displayName ?? "User";
+        String userEmail = _auth.currentUser?.email ?? "email@example.com";
+        String? photoUrl = _auth.currentUser?.photoURL;
+        
+        if (snapshot.hasData && snapshot.data != null && snapshot.data!.exists) {
+          final data = snapshot.data!.data();
+          if (data != null) {
+            userName = data['name'] ?? userName;
+            userEmail = data['email'] ?? userEmail;
+            photoUrl = data['photoUrl'] ?? photoUrl;
+          }
+        }
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'My Profile',
-          style: GoogleFonts.lobster(
-            color: const Color(0xFF1E3A5F),
-            fontSize: 24,
+        final body = _buildBody(context, userName, userEmail, photoUrl);
+        
+        if (widget.embedded) {
+          return Container(
+            color: Colors.grey[50],
+            child: Column(
+              children: [
+                _buildEmbeddedHeader(),
+                Expanded(child: body),
+              ],
+            ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: Colors.grey[50],
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true,
+            title: Text(
+              'My Profile',
+              style: GoogleFonts.lobster(
+                color: const Color(0xFF1E3A5F),
+                fontSize: 24,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E3A5F)),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E3A5F)),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: body,
+          body: body,
+        );
+      },
     );
   }
 
@@ -68,7 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context, String userName, String userEmail, String? photoUrl) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -87,15 +109,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: 2,
                     ),
                   ),
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     radius: 50,
-                    backgroundImage: AssetImage('assets/icons/bolukacang.jpg'), // Ganti dengan foto user nanti
-                    // Jika belum ada foto, bisa pakai child: Icon(Icons.person)
+                    backgroundColor: Colors.grey[200],
+                    backgroundImage: photoUrl != null && photoUrl.isNotEmpty
+                        ? NetworkImage(photoUrl)
+                        : const AssetImage('assets/icons/bolukacang.jpg') as ImageProvider,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  _userName,
+                  userName,
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -103,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 Text(
-                  _userEmail,
+                  userEmail,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: Colors.grey,
@@ -119,21 +143,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildProfileMenu(
             icon: Icons.person_outline,
             title: 'Edit Profile',
-            onTap: () async {
-              final result = await Navigator.pushNamed(
+            onTap: () {
+              Navigator.pushNamed(
                 context,
                 '/edit_profile',
                 arguments: {
-                  'name': _userName,
-                  'email': _userEmail,
-                  'phone': _userPhone,
+                  'name': userName,
+                  'email': userEmail,
+                  'photoUrl': photoUrl,
                 },
               );
-              if (result != null && result is String) {
-                setState(() {
-                  _userName = result;
-                });
-              }
             },
           ),
           _buildProfileMenu(
@@ -162,9 +181,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Text('Cancel', style: GoogleFonts.poppins(color: Colors.grey)),
                       ),
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(context); // Tutup dialog
-                          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                          await FirebaseAuth.instance.signOut();
+                          if (context.mounted) {
+                            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                          }
                         },
                         child: Text('Logout', style: GoogleFonts.poppins(color: Colors.red)),
                       ),

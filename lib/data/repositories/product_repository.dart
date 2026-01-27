@@ -57,7 +57,16 @@ class ProductRepository {
   Future<ProductModel?> getProduct(String id) async {
     final doc = await _firestore.collection(_collection).doc(id).get();
     if (!doc.exists) return null;
+    if (!doc.exists) return null;
     return ProductModel.fromFirestore(doc);
+  }
+
+  // Stream single product
+  Stream<ProductModel?> getProductStream(String id) {
+    return _firestore.collection(_collection).doc(id).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      return ProductModel.fromFirestore(doc);
+    });
   }
 
   // Create product with auto-generated productId

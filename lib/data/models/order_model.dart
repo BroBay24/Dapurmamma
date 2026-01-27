@@ -36,7 +36,7 @@ class OrderItemModel {
 
 class OrderModel {
   final String id;
-  final String oderId; // Human-readable ID like "ID-01"
+  final String orderId; // Human-readable ID like "ID-01"
   final String userId;
   final String customerName;
   final List<OrderItemModel> items;
@@ -50,7 +50,7 @@ class OrderModel {
 
   OrderModel({
     required this.id,
-    required this.oderId,
+    required this.orderId,
     required this.userId,
     required this.customerName,
     required this.items,
@@ -72,7 +72,7 @@ class OrderModel {
 
     return OrderModel(
       id: doc.id,
-      oderId: data['orderId'] ?? '',
+      orderId: data['orderId'] ?? '',
       userId: data['userId'] ?? '',
       customerName: data['customerName'] ?? '',
       items: itemsList,
@@ -127,7 +127,7 @@ class OrderModel {
 
   Map<String, dynamic> toFirestore() {
     return {
-      'orderId': oderId,
+      'orderId': orderId,
       'userId': userId,
       'customerName': customerName,
       'items': items.map((e) => e.toMap()).toList(),
@@ -143,7 +143,7 @@ class OrderModel {
 
   OrderModel copyWith({
     String? id,
-    String? oderId,
+    String? orderId,
     String? userId,
     String? customerName,
     List<OrderItemModel>? items,
@@ -157,7 +157,7 @@ class OrderModel {
   }) {
     return OrderModel(
       id: id ?? this.id,
-      oderId: oderId ?? this.oderId,
+      orderId: orderId ?? this.orderId,
       userId: userId ?? this.userId,
       customerName: customerName ?? this.customerName,
       items: items ?? this.items,

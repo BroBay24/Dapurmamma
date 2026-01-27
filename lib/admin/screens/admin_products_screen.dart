@@ -274,15 +274,6 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                               style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w500),
                             ),
-                            Text(
-                              product.description,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
                           ],
                         ),
                       ),

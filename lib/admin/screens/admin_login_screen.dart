@@ -297,7 +297,24 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/forgot_password');
+                            },
+                            child: Text(
+                              'Lupa Password?',
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xFFD84A7E),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
                         // Login button
                         SizedBox(
                           height: 50,

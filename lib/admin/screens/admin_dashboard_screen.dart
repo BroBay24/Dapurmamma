@@ -587,61 +587,57 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       child: Row(
         children: [
           // Image
-          Expanded(
-            flex: 2,
+          SizedBox(
+            width: 50,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+              child: product.imageUrl.isNotEmpty
                   ? Image.network(
-                      product.imageUrl!,
-                      width: 50,
-                      height: 50,
+                      product.imageUrl,
+                      width: 40,
+                      height: 40,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image, color: Colors.grey),
-                      ),
+                      errorBuilder: (_, __, ___) => _buildPlaceholderImage(),
                     )
-                  : Container(
-                      width: 50,
-                      height: 50,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.image, color: Colors.grey),
-                    ),
+                  : _buildPlaceholderImage(),
             ),
           ),
+          const SizedBox(width: 12),
           // Name
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Text(
               product.name,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
+                color: const Color(0xFF2D3748),
               ),
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
           // Category
           Expanded(
             flex: 2,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD84A7E).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                product.category,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: const Color(0xFFD84A7E),
-                  fontWeight: FontWeight.w500,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD84A7E).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                textAlign: TextAlign.center,
+                child: Text(
+                  product.category,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    color: const Color(0xFFD84A7E),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
           ),
@@ -658,22 +654,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
           // Status
-          Expanded(
-            flex: 1,
+          SizedBox(
+            width: 80,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 4),
               decoration: BoxDecoration(
                 color: product.isActive
                     ? Colors.green.withOpacity(0.1)
                     : Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 product.isActive ? 'Aktif' : 'Nonaktif',
                 style: GoogleFonts.poppins(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: product.isActive ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -681,6 +677,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPlaceholderImage() {
+    return Container(
+      width: 40,
+      height: 40,
+      color: Colors.grey[100],
+      child: Icon(Icons.image_outlined, color: Colors.grey[400], size: 20),
     );
   }
 
